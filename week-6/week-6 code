@@ -1,0 +1,104 @@
+create database employee;
+use employee;
+
+create table dept(no varchar(20) primary key, dname varchar(20), dloc varchar(20));
+
+create table employee(empno int,ename varchar(20),mgr_no int,hiredate varchar(20), sal float,no varchar(20),primary key(empno,no), foreign key(no) references dept(no));
+
+create table incentives(empno int, date VARCHAR(20), amt float,primary key(empno,date),foreign key(empno) references employee(empno));
+
+create table project(pno int primary key, ploc VARCHAR(20),pname varchar(20));
+
+create table Assingnedto(empno int, pno int,job_role text, primary key(empno,pno), foreign key(empno) references employee(empno), foreign key(pno) references project(pno));
+
+insert into dept values(1,"cse","bng");
+insert into dept values(2,"ise","delhi");
+insert into dept values(3,"csds","bombay");
+insert into dept values(4,"ece","hyderabad");
+insert into dept values(5,"aiml","mysore");
+insert into dept values(6,"aids","pune");
+select * from dept;
+
+insert into employee values(101,"ravi",100,"12/01/1999",200000,1);
+insert into employee values(201,"tej",200,"17/01/2020",80000,2);
+insert into employee values(301,"mohan",100,"01/09/2004",40000,3);
+insert into employee values(401,"rahul",101,"03/08/2000",30000,4);
+insert into employee values(501,"bharat",101,"29/2/2008",70000,5);
+insert into employee values(601,"suresh",200,"23/03/2003",40000,6);
+select * from employee;
+
+insert into incentives values(101,"12/03/2004",50000);
+insert into incentives values(201,"17/03/2024",25000);
+insert into incentives values(301,"01/12/2019",15000);
+insert into incentives values(401,"03/11/2019",5000);
+insert into incentives values(501,"29/4/2019",45000);
+select * from incentives;
+
+insert into project values(10,"bng","chatbot");
+insert into project values(40,"delhi","ml model");
+insert into project values(50,"bombay","blockchain");
+insert into project values(30,"hyderabad","stocks");
+insert into project values(80,"mysore","android app");
+insert into project values(54,"pune","web development");
+select * from project;
+
+
+insert into Assingnedto values(101,10,"software developer");
+insert into Assingnedto values(201,40,"manager");
+insert into Assingnedto values(301,50,"asst. manager");
+insert into Assingnedto values(401,30,"secretary");
+insert into Assingnedto values(501,80,"database manager");
+select * from Assingnedto;
+
+select a.empno from Assingnedto a
+where a.pno=any(select pno from project where ploc in ("bng","hyderabad","mysore"));
+
+select e.empno from employee e where
+e.empno!=all(select i.empno from incentives i);
+
+select e.empno, e.ename, a.job_role, d.dloc,p.ploc
+from employee e,dept d, Assingnedto a, project p
+where e.no=d.no and e.empno=a.empno and a.pno=p.pno and d.dloc=p.ploc;
+
+select mgr.ename as manager_name, count(e.empno) as num_employee
+from employee e join employee mgr on e.mgr_no = mgr.empno
+group by mgr.ename
+order by num_employee desc 
+limit 1;
+
+
+
+
+ SELECT e1.ENAME AS ManagerName
+FROM EMPLOYEE e1
+WHERE e1.SAL > (
+    SELECT AVG(E.SAL)
+    FROM EMPLOYEE E
+    WHERE E.MGR_NO = e1.EMPNO
+);
+
+SELECT E.*
+FROM EMPLOYEE E, INCENTIVES I
+WHERE E.EMPNO = I.EMPNO
+AND i.date BETWEEN '01/01/2019' AND '31/01/2019'
+ORDER BY i.amt DESC
+LIMIT 1 OFFSET 1;
+
+SELECT E.ENAME AS EmployeeName, M.ENAME AS ManagerName, E.NO
+FROM EMPLOYEE E
+JOIN EMPLOYEE M ON E.MGR_NO = M.EMPNO
+WHERE E.NO = M.NO;
+
+SELECT MGR.ENAME AS Manager_Name, COUNT(E.EMPNO) AS Num_Employees
+FROM EMPLOYEE E
+JOIN EMPLOYEE MGR ON E.MGR_NO = MGR.EMPNO
+GROUP BY MGR.ENAME
+ORDER BY Num_Employees DESC
+LIMIT 1;
+
+SELECT DISTINCT E2.ENAME AS Second_Level_Manager, D.DNAME AS Department
+FROM EMPLOYEE E1
+JOIN EMPLOYEE E2 ON E1.MGR_NO = E2.EMPNO
+JOIN DEPT D ON E1.no = D.no
+WHERE E2.MGR_NO IS NOT NULL
+ORDER BY D.DNAME, Second_Level_Manager;
